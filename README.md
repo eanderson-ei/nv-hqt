@@ -32,6 +32,4 @@ When packaging the Data Package for distribution following a new release or bug 
 
 Make sure the `CHANGELOG.md` file is up to date, and clean it up if needed.
 
-Importantly, do not confuse this version with the *official* version of the HQT! The official version is the version that was distributed by the program's administrator and is available on the program's website. If you are providing technical assistance or verifying a project assessment, make sure to use the appropriate version. Zipped copies of each official distribution are maintained on Sharepoint.
-
- 
+Importantly, do not confuse this version with the *official* version of the HQT! This version may contain unreleased changes. The official version is the version that was distributed by the program's administrator and is available on the program's website. If you are providing technical assistance or verifying a project assessment, make sure to use the appropriate version. Zipped copies of each official distribution are maintained on Sharepoint.

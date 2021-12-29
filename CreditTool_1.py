@@ -225,9 +225,19 @@ def main():
                     layer = arcpy.mapping.Layer(PROPOSED_MODIFIED_FEATURES)
                     df.extent = layer.getSelectedExtent()
 
+    # Update message
+    arcpy.AddMessage("Creating pre-defined map units of Wet Meadows")
+
+    # Intersect the Map_Units layer with the NV Wet Meadows layer
+    in_feature = ccsStandard.Wet_Meadows
+    field_name = "Meadow"
+    na_value = "No Meadow"
+    ccslib.CreatePreDefinedMapUnits(Map_Units, in_feature, field_name, 
+                                    na_value)
+    
     # Add fields Map_Unit_ID, Map_Unit_Name, and Meadow to Map_Units
-    fields = ["Map_Unit_ID", "Map_Unit_Name", "Meadow", "Notes"]
-    fieldTypes = ["SHORT", "TEXT", "TEXT", "TEXT"]
+    fields = ["Map_Unit_ID", "Map_Unit_Name", "Notes"]
+    fieldTypes = ["SHORT", "TEXT", "TEXT"]
     ccslib.AddFields(Map_Units, fields, fieldTypes, copy_existing=True)
 
     # Add Domains to Map_Units layer
@@ -241,7 +251,7 @@ def main():
     # Create Domain for Meadow attributes
     featureList = [Map_Units]
     domainName = "Meadow"
-    codeList = ["No_Meadow", "Altered", "Unaltered"]
+    codeList = ["No Meadow", "Altered", "Unaltered"]
     ccslib.AddCodedTextDomain(featureList, workspace, domainName, codeList,
                               assign_default=True)
 

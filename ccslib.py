@@ -58,6 +58,7 @@ class ccsStandard:
     _pj_phase_iii = "PJ_Phase_III"
     _brotec = "Annual_Grass_Layer"
     _public_land = "NV_Public"
+    _wet_meadows = "NV_Wet_Meadows"
 
     # Standard values
     _credit_terms = ["Current", "Projected"]
@@ -145,6 +146,11 @@ class ccsStandard:
     def Public(self):
         inputDataPath = self.InputDataPath
         return os.path.join(inputDataPath, self._public_land)
+    
+    @property
+    def Wet_Meadows(self):
+        inputDataPath = self.InputDataPath
+        return os.path.join(inputDataPath, self._wet_meadows)
 
     # Instance methods
     def getLayerFile(self, layer_name):
@@ -1712,7 +1718,7 @@ def calcCreditBenefit(input_data_path, includes_anthro_mod=False):
     arcpy.Delete_management("in_memory")
 
 
-def CreatePreDefinedMapUnits(Map_Units, in_features, field_name=None):
+def CreatePreDefinedMapUnits(Map_Units, in_features, field_name=None, na_value="N/A"):
     """
     Intersects the Map Units feature class with the in_features feature class.
     A field name may be provided from the in_features to include in the output
@@ -1742,7 +1748,7 @@ def CreatePreDefinedMapUnits(Map_Units, in_features, field_name=None):
         with arcpy.da.UpdateCursor(Map_Units, field_name) as cursor:
             for row in cursor:
                 if row[0] is None or row[0] == "":
-                    row[0] = "N/A"
+                    row[0] = na_value
                     cursor.updateRow(row)
 
     # # Add fields and populate with 'True' wherever a new map unit was created
@@ -1925,7 +1931,7 @@ def CalcZonalStats(in_zone_data, zone_field, in_value_raster, out_table):
     else:
         tmp_raster = in_value_raster
     # Calculate zonal statistics
-    arcpy.gp.ZonalStatisticsAsTable(in_zone_data, zone_field, tmp_raster,
+    arcpy.gp.ZonalStatisticsAsTable_sa(in_zone_data, zone_field, tmp_raster,
                                     out_table, "DATA", "MEAN")
     if resample:
         arcpy.Delete_management(tmp_raster)

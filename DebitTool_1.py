@@ -82,6 +82,16 @@ def main():
     if Provided_Disturbance:
         # Check provided input
         ccslib.CheckPolygonInput(Provided_Disturbance)
+        
+        # Check provided input for 'Feature' field, error and exit if so
+        existing_fields = [field.name.lower() for field 
+                           in arcpy.ListFields(Provided_Disturbance)]
+        if 'feature' in existing_fields:
+            arcpy.AddError("ERROR:: The provided proposed surface "
+                           "disturbance layer includes a field named "
+                           "'Feature' in the attribute table. Please "
+                           "rename this field and re-run this tool. ")
+            sys.exit(0)
 
         # Create a local copy of the provided disturbance in case it is
         # the output of the projected input from re-running Debit Tool 1

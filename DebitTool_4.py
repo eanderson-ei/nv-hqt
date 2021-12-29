@@ -294,6 +294,16 @@ def main():
     Project_Area = DEBIT_PROJECT_AREA
     out_name = MAP_UNITS
     Map_Units = ccslib.CreateMapUnits(Project_Area, out_name)
+    
+    # Update message
+    arcpy.AddMessage("Creating pre-defined map units of Wet Meadows")
+
+    # Intersect the Map_Units layer with the NV Wet Meadows layer
+    in_feature = ccsStandard.Wet_Meadows
+    field_name = "Meadow"
+    na_value = "No Meadow"
+    ccslib.CreatePreDefinedMapUnits(Map_Units, in_feature, field_name, 
+                                    na_value)
 
     # Update message
     arcpy.AddMessage("Creating pre-defined map units of PJ")
@@ -301,14 +311,6 @@ def main():
     # Intersect the Map_Units layer with the Phase III PJ layer
     in_feature = ccsStandard.PJ_Phase_III
     field_name = "Conifer_Phase"
-    ccslib.CreatePreDefinedMapUnits(Map_Units, in_feature, field_name)
-
-    # Update message
-    arcpy.AddMessage("Creating pre-defined map units of annual grass")
-
-    # Intersect the Map_Units layer with the Annual Grass layer
-    in_feature = ccsStandard.BROTEC
-    field_name = "BROTEC"
     ccslib.CreatePreDefinedMapUnits(Map_Units, in_feature, field_name)
 
     # Update message
@@ -321,7 +323,7 @@ def main():
 
     # Remove unwanted fields from Map Units feature class
     allowable_fields = ["Disturbance_Type",
-                        "BROTEC", "Conifer_Phase"]
+                        "BROTEC", "Conifer_Phase", "Meadow"]
     ccslib.SimplifyFields(Map_Units, allowable_fields)
 
     # Populate empty attributes with Indirect
@@ -339,10 +341,10 @@ def main():
     layerFile = ccsStandard.getLayerFile("Map_Units.lyr")
     ccslib.AddToMap(Map_Units, layerFile)
 
-    # Add fields Map_Unit_ID, Map_Unit_Name, Meadow, and Precip to map unit
+    # Add fields Map_Unit_ID, Map_Unit_Name, and Precip to map unit
     input_feature = Map_Units
-    fields = ["Map_Unit_ID", "Map_Unit_Name", "Meadow", "Notes"]
-    fieldTypes = ["SHORT", "TEXT", "TEXT", "TEXT"]
+    fields = ["Map_Unit_ID", "Map_Unit_Name", "Notes"]
+    fieldTypes = ["SHORT", "TEXT", "TEXT"]
     ccslib.AddFields(input_feature, fields, fieldTypes, copy_existing=True)
         
     # Add Domains to Map_Units layer
