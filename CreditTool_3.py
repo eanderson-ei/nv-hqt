@@ -149,7 +149,7 @@ def main():
         Current_Anthro_Features = ccslib.MergeFeatures(fileList, out_name)
 
     # Simplify fields
-    allowable_fields = ["Type", "Subtype", "SubtypeID", "Subtype_As_Modified"]
+    allowable_fields = ["Type", "Subtype", "Feature", "Subtype_As_Modified"]
     ccslib.SimplifyFields(Current_Anthro_Features, allowable_fields)
 
     # Remove subtypes from Current_Anthro_Features
@@ -222,6 +222,25 @@ def main():
         arcpy.AddMessage("Creating pre-defined map units of PJ")
 
         Map_Units = MAP_UNITS
+        
+        if len(arcpy.ListFields(Map_Units, "Meadow")) == 0:
+            # Create pre-defined map units for Wet Meadow
+            # Update message
+            arcpy.AddMessage("Creating pre-defined map units of Wet Meadows")
+
+            # Intersect the Map_Units layer with the NV Wet Meadows layer
+            in_feature = ccsStandard.Wet_Meadows
+            field_name = "Meadow"
+            na_value = "No Meadow"
+            ccslib.CreatePreDefinedMapUnits(Map_Units, in_feature, field_name, 
+                                            na_value)
+            
+            # Create Domain for Meadow attributes
+            featureList = [Map_Units]
+            domainName = "Meadow"
+            codeList = ["No Meadow", "Altered", "Unaltered"]
+            ccslib.AddCodedTextDomain(featureList, workspace, domainName, codeList,
+                                    assign_default=True)        
 
         if len(arcpy.ListFields(Map_Units, "Conifer_Phase")) == 0:
             # Create pre-defined map units for PJ
@@ -287,7 +306,7 @@ def main():
 
     # Dissolve Map Units
     allowable_fields = ["Map_Unit_ID", "Map_Unit_Name", "Meadow", "Conifer_Phase",
-                        "BROTEC", "Indirect"]
+                        "Indirect"]
     out_name = MAP_UNITS_DISSOLVE
     anthro_features = Current_Anthro_Features
     Map_Units_Dissolve = ccslib.DissolveMapUnits(MAP_UNITS, allowable_fields,

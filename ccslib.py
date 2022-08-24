@@ -58,7 +58,7 @@ class ccsStandard:
     _pj_phase_iii = "PJ_Phase_III"
     _brotec = "Annual_Grass_Layer"
     _public_land = "NV_Public"
-    _wet_meadows = "NV_Wet_Meadows"
+    _wet_meadows = "NV_Wet_Meadow_MUs"
 
     # Standard values
     _credit_terms = ["Current", "Projected"]
@@ -1474,7 +1474,7 @@ def AddIndirectBenefitArea(indirect_impact_area, mgmt_map_units):
             if row[0] == "True":
                 row[1] = next_muid
                 row[2] = "Indirect Benefits Area"
-                row[3] = "No_Meadow"
+                row[3] = "No_Meadow"  # Meadow factor is not applied for Indirect Benefit Areas
                 cursor.updateRow(row)
             else:
                 row[0] = "False"

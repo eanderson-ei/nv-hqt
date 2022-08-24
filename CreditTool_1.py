@@ -225,17 +225,8 @@ def main():
                     layer = arcpy.mapping.Layer(PROPOSED_MODIFIED_FEATURES)
                     df.extent = layer.getSelectedExtent()
 
-    # Update message
-    arcpy.AddMessage("Creating pre-defined map units of Wet Meadows")
-
-    # Intersect the Map_Units layer with the NV Wet Meadows layer
-    in_feature = ccsStandard.Wet_Meadows
-    field_name = "Meadow"
-    na_value = "No Meadow"
-    ccslib.CreatePreDefinedMapUnits(Map_Units, in_feature, field_name, 
-                                    na_value)
-    
-    # Add fields Map_Unit_ID, Map_Unit_Name, and Meadow to Map_Units
+       
+    # Add fields Map_Unit_ID, Map_Unit_Name, to Map_Units
     fields = ["Map_Unit_ID", "Map_Unit_Name", "Notes"]
     fieldTypes = ["SHORT", "TEXT", "TEXT"]
     ccslib.AddFields(Map_Units, fields, fieldTypes, copy_existing=True)
@@ -248,14 +239,25 @@ def main():
     ccslib.AddRangeDomain(Map_Units, workspace,
                           domainName, range_low, range_high)
 
-    # Create Domain for Meadow attributes
-    featureList = [Map_Units]
-    domainName = "Meadow"
-    codeList = ["No Meadow", "Altered", "Unaltered"]
-    ccslib.AddCodedTextDomain(featureList, workspace, domainName, codeList,
-                              assign_default=True)
-
     if Credit_Project_Boundary:
+        # Create pre-defined map units for Wet Meadow
+        # Update message
+        arcpy.AddMessage("Creating pre-defined map units of Wet Meadows")
+
+        # Intersect the Map_Units layer with the NV Wet Meadows layer
+        in_feature = ccsStandard.Wet_Meadows
+        field_name = "Meadow"
+        na_value = "No Meadow"
+        ccslib.CreatePreDefinedMapUnits(Map_Units, in_feature, field_name, 
+                                        na_value)
+        
+        # Create Domain for Meadow attributes
+        featureList = [Map_Units]
+        domainName = "Meadow"
+        codeList = ["No Meadow", "Altered", "Unaltered"]
+        ccslib.AddCodedTextDomain(featureList, workspace, domainName, codeList,
+                                assign_default=True)
+        
         # Create pre-defined map units for PJ
         # Update message
         arcpy.AddMessage("Creating pre-defined map units of PJ")
@@ -265,13 +267,13 @@ def main():
         field_name = "Conifer_Phase"
         ccslib.CreatePreDefinedMapUnits(Map_Units, in_feature, field_name)
 
-        # Remove unwanted fields from Map Units feature class
-        allowable_fields = fields + ["Conifer_Phase"]
-        ccslib.SimplifyFields(Map_Units, allowable_fields)
+    # Remove unwanted fields from Map Units feature class
+    allowable_fields = fields + ["Conifer_Phase", "Meadow"]
+    ccslib.SimplifyFields(Map_Units, allowable_fields)
 
-        # Add Map_Units to map
-        layerFile = ccsStandard.getLayerFile("Map_Units.lyr")
-        ccslib.AddToMap(Map_Units, layerFile, zoom_to_mu)
+    # Add Map_Units to map
+    layerFile = ccsStandard.getLayerFile("Map_Units.lyr")
+    ccslib.AddToMap(Map_Units, layerFile, zoom_to_mu)
 
     # Clean up
     arcpy.Delete_management("in_memory")
