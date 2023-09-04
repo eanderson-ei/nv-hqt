@@ -2,7 +2,7 @@
 
 This repository contains modules required to run the Nevada Credit System HQT.
 
-For more information, see the [Scientific Methods Document](https://sagebrusheco.nv.gov/uploadedFiles/sagebrusheconvgov/content/CCS/HQT%20Methods%20Version%201.7.pdf) and [User's Guide](https://sagebrusheco.nv.gov/uploadedFiles/sagebrusheconvgov/content/CCS/User's%20Guide_v1_7.pdf).
+For more information, see the [Nevada Conservation Credit System homepage](https://sagebrusheco.nv.gov/CCS/ConservationCreditSystem/), [Scientific Methods Document](https://sagebrusheco.nv.gov/uploadedFiles/sagebrusheconvgov/content/CCS/HQT%20Methods%20Version%201.7.pdf) and [User's Guide](https://sagebrusheco.nv.gov/uploadedFiles/sagebrusheconvgov/content/CCS/User's%20Guide_v1_7.pdf).
 
 Copyright 2017-2020 Environmental Incentives, LLC.
 
