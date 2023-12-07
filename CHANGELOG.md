@@ -3,12 +3,47 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.3] 2023-02-23
+
+### Added
+
+* **Scripts/ccslib.py**: 
+  * Updated the `CalcModifiers` function to multiply by the term (1 + SUI) for all projects (credit and debit).
+* **Scripts/CreditTool3.py**: included SUI as term in `CalcModifiers` function
+
+## [1.8.0] 2023-02-23
+
+This version includes the Space Use Index as a modifier for Debit Projects only. The Space Use Index must be requested from the SETT. The Space Use Index is used to generate the previously requested `Dist_Lek` layer.
+
+### Added
+* **ToolData/Required_Data_Layers.gdb**: Added a remap table to create the `Dist_Lek` layer from the `Space_Use_Index` named `SUI_Remap`.
+* **Scripts/ccslib.py**: 
+    * Added a function to reclassify the `Space_Use_Layer` to create the `Dist_Lek` layer `calc_dist_lek`. 
+    * Added a class method to retrieve the `SUI_Remap` table from `Required_Data_Layers.gdb`. 
+    * Updated the `CalcModifiers()` function to to multiply by the term (1 + SUI) if provided, the SUI will only be provided for Debit Projects.
+* **Debit_Tool_4**: Changed the `Dist_Lek` parameter to `Space_Use_Index`.
+* **Scripts/DebitTool4.py**: 
+  * Retrieved the `SUI_Remap` table from `ccsStandard` object and added a call to `ccslib.calc_dist_lek` to create the `Dist_Lek` layer.
+  * Included SUI as term in `CalcModifiers` function
+* **Credit_Tool_3**: Changed the `Dist_Lek` parameter to `Space_Use_Index`.
+* **Scripts/CreditTool3.py**: Retrieved the `SUI_Remap` table from `ccsStandard` object and added a call to `ccslib.calc_dist_lek` to create the `Dist_Lek` layer.
+
+### Changes
+
+* **Calculators**: versioned up the Credit and Debit Calculators but made no changes.
+
+### Bug Fixes
+
+* **ToolData/Anthro_Features.gdb/Railroads**: Changed all Type and Subtype fields from “Railway” to “Railways” to correspond to the `Anthro_Attribute_Table`.
+* **Scripts/ccslib.py**: Caught error when no anthropogenic disturbance is included at any term by substituting the `empty_raster` for the `anthro_dist` raster when the list of subtypes present is empty.
+* **Scripts/DebitTool4.py:** Changed SimplifyFields to call on each Anthro*Clip layer individually rather than the merged Current_Anthro_Features to solve a memory overrun issue (https://www.mindland.com/solving-the-arcpy-dissolve/).
+
 ## [1.7.0] 2021-01-05
 
 ### Added
 
 * **ToolData/Anthro_Features.gdb/Railroads**: Added a new feature class provided by the SETT for Railroads. Added required fields Feature (short), Type (text), and Subtype (text). Populated fields for all features. Projected provided shapefile to UTM Zone 11N. Created subtype for Railroad. 
-* **ToolData/Required_Layers.gdb/NV_Wet_Meadows**: Added a new feature class provided by the SETT outlining Wetlands. This will be used to automatically create map units for Credit & Debit Projects. Add a field Meadow and populated all features with "Unaltered" as default.
+* **ToolData/Required_Data_Layers.gdb/NV_Wet_Meadows**: Added a new feature class provided by the SETT outlining Wetlands. This will be used to automatically create map units for Credit & Debit Projects. Add a field Meadow and populated all features with "Unaltered" as default.
 * **Scripts/ccslib.py**: Added the Wet Meadow layer as a property of the ccsStandard object.
 * **Scripts/DebitTool_4.py**: Added a call to the ccslib.CreatePredefinedMapUnits() function passing the Wet Meadows layer as input and the Meadow field as the field to copy over to the Map Units layer. Added Meadow as an allowable field (line 324) prior to simplifying fields. Removed Meadow from list of fields to add (line 344).
 * **Scripts/CreditTool_1.py**: Added a call to the ccslib.CreatePredefinedMapUnits() function passing the Wet Meadows layer as input and the Meadow field as the field to copy over to the Map Units layer. Removed Meadow from list of fields to add (line 239).

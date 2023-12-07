@@ -6,7 +6,7 @@ Revised:  February 25, 2019
 Version:  Created using Python 2.7.10, Arc version 10.4.1
 Requires: ArcGIS version 10.1 or later, Basic (ArcView) license or better
 
-Copyright 2017-2020 Environmental Incentives, LLC.
+Copyright 2017-2023 Environmental Incentives, LLC.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

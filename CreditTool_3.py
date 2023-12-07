@@ -12,7 +12,7 @@ Requires Map_Units and Analysis_Area feature classes created by Credit Tool 2.
 When re-run on the same project, edits to the Map Units layer made since
 Credit Tool 2 was run will not be overwritten.
 
-Copyright 2017-2020 Environmental Incentives, LLC.
+Copyright 2017-2023 Environmental Incentives, LLC.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ if arcpy.ListInstallations()[0] == 'arcgispro':  # switch
 def main():
     # GET PARAMETER VALUES
     Analysis_Area = arcpy.GetParameterAsText(0)
-    Dist_Lek = arcpy.GetParameterAsText(1)
+    Space_Use_Index = arcpy.GetParameterAsText(1)
     Current_Anthro_Features_Provided = arcpy.GetParameterAsText(2)  # optional
     Project_Folder = arcpy.GetParameterAsText(3)
     Project_Name = arcpy.GetParameterAsText(4)  # optional
@@ -90,6 +90,7 @@ def main():
     CURRENT_WMZ = "Current_WMZ"
     CURRENT_PMU = "Current_PMU"
     CURRENT_PRECIP = "Current_Precip"
+    DIST_LEK = "Dist_Lek"
 
     # ------------------------------------------------------------------------
 
@@ -282,12 +283,21 @@ def main():
             for row in cursor:
                 row[0] = "False"
                 cursor.updateRow(row)
+    
+    # Update message
+    arcpy.AddMessage("Calculating Distance to Lek")
+
+    # Calculate Dist_Lek layer and save
+    remap_table = ccsStandard.SUIClass
+    Dist_Lek = ccslib.CalcDistLek(Space_Use_Index, remap_table)
+    Dist_Lek.save(DIST_LEK)
 
     # Calculate local scale modifiers for Current condition
     extent_fc = Analysis_Area
     anthro_disturbance = CURRENT_ANTHRO_DISTURBANCE
     term = ccsStandard.CreditTerms[0]
-    ccslib.CalcModifiers(extent_fc, inputDataPath, Dist_Lek, anthro_disturbance, term)
+    ccslib.CalcModifiers(extent_fc, inputDataPath, Dist_Lek, anthro_disturbance, 
+                         term, Space_Use_Index)
 
     # Calculate local scale modifiers for Projected condition
     # Determine which anthropogenic disturbance raster to use
@@ -298,7 +308,7 @@ def main():
         anthro_disturbance = CURRENT_ANTHRO_DISTURBANCE
     term = ccsStandard.CreditTerms[1]
     ccslib.CalcModifiers(extent_fc, inputDataPath, Dist_Lek, anthro_disturbance,
-                         term, PJ_removal=True)
+                         term, Space_Use_Index, PJ_removal=True)
 
     # Update message
     arcpy.AddMessage("Dissolving all multi-part map units to create "

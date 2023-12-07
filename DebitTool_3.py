@@ -9,7 +9,7 @@ Requires: ArcGIS version 10.1 or later, Basic (ArcView) license or better
 Path to the project's workspace is derived from the 
 Proposed_Surface_Disturbance_Eligible feature class provided by the user.
 
-Copyright 2017-2020 Environmental Incentives, LLC.
+Copyright 2017-2023 Environmental Incentives, LLC.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

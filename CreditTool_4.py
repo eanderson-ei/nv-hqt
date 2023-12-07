@@ -11,7 +11,7 @@ The provided Map_Units_Dissolve feature class is used to derive the workspace.
 Requires Map_Units_Dissolve feature classes created by Credit Tool 3.
 Transects_Provided must be provided by SETT.
 
-Copyright 2017-2020 Environmental Incentives, LLC.
+Copyright 2017-2023 Environmental Incentives, LLC.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

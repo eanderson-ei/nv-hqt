@@ -1,18 +1,18 @@
 """
-Name:     DebitTool_3.py
+Name:     DebitTool_4.py
 Author:   Erik Anderson
 Created:  May 5, 2017
-Revised:  February 25, 2019
+Revised:  February 23, 2023
 Version:  Created using Python 2.7.10, Arc version 10.4.1
 Requires: ArcGIS version 10.1 or later, Basic (ArcView) license or better
           Spatial Analyst Extension
 
 Path to the project's workspace is derived from the Analysis_Area
 feature class provided by the user.
-Requires Analysis_Area, Debit_Project_Area, and
-Proposed_Surface_Disturbance_Debits created by Debit Tool 2.
+Requires Analysis_Area created by Debit Tool 3 and Space Use Index 
+provided by the SETT.
 
-Copyright 2017-2020 Environmental Incentives, LLC.
+Copyright 2017-2023 Environmental Incentives, LLC.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ def main():
     # GET PARAMETER VALUES
     Analysis_Area = arcpy.GetParameterAsText(0)
     Current_Anthro_Features_Provided = arcpy.GetParameterAsText(1)  # optional
-    Dist_Lek = arcpy.GetParameterAsText(2)
+    Space_Use_Index = arcpy.GetParameterAsText(2)
 
     # DEFINE DIRECTORIES
     # Get the pathname to this script
@@ -87,7 +87,8 @@ def main():
     CURRENT_ANTHRO_DISTURBANCE = "Current_Anthro_Disturbance"
     PROJECTED_ANTHRO_DISTURBANCE = "Projected_Anthro_Disturbance"
     PERMANENT_ANTHRO_DISTURBANCE = "Permanent_Anthro_Disturbance"
-    MAP_UNITS = "Map_Units"
+    DIST_LEK = "Dist_Lek"
+    MAP_UNITS = "Map_Units"    
 
     # ------------------------------------------------------------------------
 
@@ -132,18 +133,26 @@ def main():
         arcpy.AddMessage("Merging all clipped anthropogenic features to "
                          "create the Current_Anthro_Features layer")
 
-        # Merge features (selecting only polygon features)
+        # Simplify fields. critical to remove any fields named
+        # 'Surface_Disturbance' in Current_Anthro_Features before joining
+        # Proposed_Surface_Disturbance to create Projected_Anthro_Features
+        allowable_fields = ["Type", "Subtype", "SubtypeID", 
+                            "Subtype_As_Modified", "Overlap_Status", 
+                            "Returned", "Feature", "Featre"]
+    
+        
         fileList = arcpy.ListFeatureClasses("Anthro*Clip",
                                             feature_type="Polygon")
+        for file in fileList:
+            ccslib.SimplifyFields(file, allowable_fields)
+        
         out_name = CURRENT_ANTHRO_FEATURES
+        # Merge features (selecting only polygon features)
         Current_Anthro_Features = ccslib.MergeFeatures(fileList, out_name)
 
-    # Simplify fields. critical to remove any fields named
-    # 'Surface_Disturbance' in Current_Anthro_Features before joining
-    # Proposed_Surface_Disturbance to create Projected_Anthro_Features
-    allowable_fields = ["Type", "Subtype", "SubtypeID", "Subtype_As_Modified",
-                        "Overlap_Status", "Returned"]
-    ccslib.SimplifyFields(Current_Anthro_Features, allowable_fields)
+    
+    # ccslib.SimplifyFields(Current_Anthro_Features, allowable_fields)
+    
 
     # Remove subtypes from Current_Anthro_Features
     feature = Current_Anthro_Features
@@ -208,12 +217,14 @@ def main():
     )
     
     # Simplify fields (do not remove Surface Disturbance or Reclassified
+    # MEMORY ISSUE SEE https://www.mindland.com/solving-the-arcpy-dissolve/
     # Subtype field for use in SelectPermanent())
     allowable_fields = ["Type", "Subtype", "SubtypeID",
                         "Overlap_Status", "Returned",
                         "Subtype_As_Modified"
                         "Surface_Disturbance",
-                        "Reclassified_Subtype"]
+                        "Reclassified_Subtype", 
+                        "Feature", "Featre"]
     ccslib.SimplifyFields(Projected_Anthro_Features, allowable_fields)
 
     # Calculate Projected_Anthro_Disturbance
@@ -249,11 +260,13 @@ def main():
         )
     
     # Simplify fields
+    # MEMORY ISSUE SEE https://www.mindland.com/solving-the-arcpy-dissolve/
     allowable_fields = ["Type", "Subtype", "SubtypeID",
                         "Overlap_Status", "Returned",
                         "Subtype_As_Modified"
                         "Surface_Disturbance",
-                        "Reclassified_Subtype"]
+                        "Reclassified_Subtype",
+                        "Feature", "Featre"]
     ccslib.SimplifyFields(Permanent_Anthro_Features, allowable_fields)
 
     # Calculate Permanent Anthro Disturbance
@@ -268,6 +281,14 @@ def main():
     # Update message
     arcpy.AddMessage("Permanent_Anthro_Disturbance Calculated")
 
+    # Update message
+    arcpy.AddMessage("Calculating Distance to Lek")
+
+    # Calculate Dist_Lek layer and save
+    remap_table = ccsStandard.SUIClass
+    Dist_Lek = ccslib.CalcDistLek(Space_Use_Index, remap_table)
+    Dist_Lek.save(DIST_LEK)
+
     # Calculate local scale modifiers for Current, Projected, and
     # Permanent condition
     extent_fc = Analysis_Area
@@ -275,7 +296,7 @@ def main():
     for term in terms:
         anthro_disturbance = term + "_Anthro_Disturbance"
         ccslib.CalcModifiers(extent_fc, inputDataPath, Dist_Lek,
-                             anthro_disturbance, term)
+                             anthro_disturbance, term, Space_Use_Index)
 
     # Calculate impact intensity for debit project
     try:

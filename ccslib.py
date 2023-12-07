@@ -36,7 +36,8 @@ import os
 import sys
 import random
 import numpy as np
-from arcpy.sa import EucDistance, Con, IsNull, Power, Raster, CellStatistics
+from arcpy.sa import (EucDistance, Con, IsNull, Power, Raster, 
+                      CellStatistics, ReclassByTable, Float)
 
 # ----------------------------------------------------------------------------
 
@@ -59,6 +60,7 @@ class ccsStandard:
     _brotec = "Annual_Grass_Layer"
     _public_land = "NV_Public"
     _wet_meadows = "NV_Wet_Meadow_MUs"
+    _sui_reclass = "SUI_Reclass"
 
     # Standard values
     _credit_terms = ["Current", "Projected"]
@@ -151,6 +153,11 @@ class ccsStandard:
     def Wet_Meadows(self):
         inputDataPath = self.InputDataPath
         return os.path.join(inputDataPath, self._wet_meadows)
+    
+    @property
+    def SUIClass(self):
+        inputDataPath = self.InputDataPath
+        return os.path.join(inputDataPath, self._sui_reclass)
 
     # Instance methods
     def getLayerFile(self, layer_name):
@@ -1428,7 +1435,12 @@ def CalcAnthroDist(extent_fc, Anthro_Features, empty_raster,
     arcpy.Delete_management("lyr")
 
     # Multiply individual rasters
-    anthrodist = np.prod(np.array(rasterList))
+    if len(rasterList) == 0:
+        altdist = arcpy.Clip_management(empty_raster, "#", "empty_raster", extent_fc,
+                              maintain_clipping_extent="NO_MAINTAIN_EXTENT")
+        anthrodist = Raster(altdist)
+    else:
+        anthrodist = np.prod(np.array(rasterList))
 
     # Clean up
     arcpy.Delete_management("in_memory")
@@ -1489,8 +1501,20 @@ def AddIndirectBenefitArea(indirect_impact_area, mgmt_map_units):
     return map_units_out
 
 
-def CalcModifiers(extent_fc, input_data_path, Dist_Lek, anthro_disturbance, term,
-                  PJ_removal=False, suffix=None):
+def CalcDistLek(space_use_index, remap_table):
+        # Reclassify
+        in_raster = space_use_index
+        in_remap_table = remap_table   
+        dist_lek = ReclassByTable(in_raster, in_remap_table, 
+                                  "FROM", "TO", "OUT")
+        # Divide by 100
+        dist_lek = Float(dist_lek) / 100
+
+        return dist_lek
+    
+
+def CalcModifiers(extent_fc, input_data_path, Dist_Lek, anthro_disturbance, 
+                  term, SUI, PJ_removal=False, suffix=None):
     """
     Calculates the winter, late brood-rearing, and breeding habitat quality
     modifiers and saves to the project's gdb.
@@ -1518,24 +1542,27 @@ def CalcModifiers(extent_fc, input_data_path, Dist_Lek, anthro_disturbance, term
     Summer_HSI = Raster(os.path.join(input_data_path, "Summer_HSI"))
     Winter_HSI = Raster(os.path.join(input_data_path, "Winter_HSI"))
     Dist_Brood = Raster(os.path.join(input_data_path, "Dist_Brood"))
+    Anthro_Dist = Raster(anthro_disturbance)
+    SUI = Raster(SUI)
 
     # Define helper functions for each season
     def calc_winter():
         """calculate winter modifier"""
-        local_winter = (Raster(anthro_disturbance) * Winter_HSI)
+        local_winter = Anthro_Dist * Winter_HSI * (1 + SUI)
         return local_winter
 
     def calc_lbr():
         """calculate late brood-rearing modifier"""
-        local_lbr = (Raster(anthro_disturbance) * Summer_HSI)
+        local_lbr = Anthro_Dist * Summer_HSI * (1 + SUI)
         return local_lbr
 
     def calc_breed():
         """calculate breeding modifier"""
-        local_breed = (Raster(anthro_disturbance)
+        local_breed = (Anthro_Dist
                        * Spring_HSI
                        * Dist_Brood
-                       * Dist_Lek)
+                       * Dist_Lek
+                       * (1 + SUI))
         return local_breed
 
     def save_namer(season):
